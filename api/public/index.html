@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MFDP API tester</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f7f9; --fg: #15181d; --card: #ffffff; --line: #d5d9e0; --accent: #2457d6; --bad: #b3261e; --ok: #1b7f3b; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #14171c; --fg: #e8ebf0; --card: #1d2128; --line: #343b46; --accent: #7da2ff; --bad: #ff8a80; --ok: #7bd88f; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  header { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  h2 { font-size: 14px; margin: 0 0 10px; }
+  label { display: block; margin: 8px 0 3px; font-weight: 600; font-size: 12px; }
+  input[type=text], input[type=password], input[type=number], textarea, select { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: 13px ui-monospace, monospace; }
+  textarea { min-height: 90px; resize: vertical; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 120px; }
+  .check { display: inline-flex; align-items: center; gap: 5px; margin-right: 12px; font-weight: 400; }
+  button { margin-top: 12px; padding: 8px 14px; border: 0; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 12px/1.45 ui-monospace, monospace; max-height: 480px; overflow: auto; }
+  #output { grid-column: 1 / -1; }
+  .status { font-weight: 700; margin-bottom: 6px; }
+  .ok { color: var(--ok); }
+  .bad { color: var(--bad); }
+  .muted { opacity: 0.7; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MFDP API tester</h1>
+  <span id="api" class="muted"></span>
+  <span style="flex:1"></span>
+  <label style="margin:0">Secret
+    <input id="secret" type="password" placeholder="only needed when REQUIRE_SECRET=true" autocomplete="off" style="width:260px">
+  </label>
+  <button class="secondary" id="health" style="margin:0">Health</button>
+</header>
+<main>
+  <section>
+    <h2>Write</h2>
+    <label for="src">Source paths (one per line, inside WORKSPACE_ROOT)</label>
+    <textarea id="src">examples/python/inventory.py
+examples/python/pricing.py</textarea>
+    <label for="memory">Or inline file (optional): name on the first line, content below</label>
+    <textarea id="memory" placeholder="demo.py&#10;def f(x):&#10;    return x"></textarea>
+    <div class="row">
+      <div><label for="kwrds">kwrds</label><input id="kwrds" type="text" value="total_value"></div>
+      <div><label for="mode">mode</label><select id="mode"><option>auto</option><option>symbols</option><option>full</option></select></div>
+      <div><label for="importMode">import_mode</label><select id="importMode"><option value="">default</option><option>relevant</option><option>all</option><option>none</option></select></div>
+    </div>
+    <div class="row">
+      <div><label for="budget">budget (tokens)</label><input id="budget" type="number" min="0" placeholder="none"></div>
+      <div><label for="depDepth">dep_depth</label><input id="depDepth" type="number" min="1" max="8" value="1"></div>
+      <div><label for="lang">lang</label><input id="lang" type="text" value="auto"></div>
+    </div>
+    <p>
+      <label class="check"><input id="hash" type="checkbox" checked> hash</label>
+      <label class="check"><input id="deps" type="checkbox" checked> deps</label>
+      <label class="check"><input id="lines" type="checkbox" checked> lines</label>
+      <label class="check"><input id="combined" type="checkbox" checked> combined</label>
+    </p>
+    <button id="doWrite">POST /v1/write</button>
+  </section>
+  <section>
+    <h2>Artifact</h2>
+    <label for="artifact">Artifact file name (inside ARTIFACT_DIR)</label>
+    <input id="artifact" type="text" placeholder="filled in after a write">
+    <div class="row">
+      <div><label for="exKwrds">extract kwrds</label><input id="exKwrds" type="text" value="*"></div>
+      <div><label for="exBudget">extract budget</label><input id="exBudget" type="number" min="0" placeholder="none"></div>
+      <div><label for="expand">expand</label><select id="expand"><option>auto</option><option>always</option><option>never</option></select></div>
+    </div>
+    <label for="verifySrc">Verify against source paths (one per line)</label>
+    <textarea id="verifySrc" style="min-height:60px">examples/python/inventory.py
+examples/python/pricing.py</textarea>
+    <button id="doExtract">POST /v1/extract</button>
+    <button id="doInspect" class="secondary">POST /v1/inspect</button>
+    <button id="doRead" class="secondary">POST /v1/read</button>
+    <button id="doVerify" class="secondary">POST /v1/verify</button>
+  </section>
+  <section id="output">
+    <div class="status" id="status">Ready.</div>
+    <pre id="result"></pre>
+  </section>
+</main>
+<script>
+(function () {
+  var apiBase = '';
+  var $ = function (id) { return document.getElementById(id); };
+  var lines = function (value) { return value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean); };
+
+  function show(status, ok, text) {
+    $('status').textContent = status;
+    $('status').className = 'status ' + (ok ? 'ok' : 'bad');
+    $('result').textContent = text;
+  }
+
+  async function call(method, path, body) {
+    var headers = { 'Content-Type': 'application/json' };
+    var secret = $('secret').value;
+    if (secret) headers['Authorization'] = 'Bearer ' + secret;
+    var started = performance.now();
+    try {
+      var response = await fetch(apiBase + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined });
+      var data = await response.json();
+      var ms = Math.round(performance.now() - started);
+      var label = method + ' ' + path + '  ->  ' + response.status + '  (' + ms + ' ms)';
+      if (data && data.result && typeof data.result.text === 'string') {
+        show(label, response.ok, data.result.text + '\n\n' + JSON.stringify(Object.assign({}, data.result, { text: undefined }), null, 2));
+      } else {
+        show(label, response.ok, JSON.stringify(data, null, 2));
+      }
+      return data;
+    } catch (error) {
+      show(method + ' ' + path + '  ->  network error', false, String(error));
+      return null;
+    }
+  }
+
+  function num(id) {
+    var v = $(id).value;
+    return v === '' ? undefined : Number(v);
+  }
+
+  function artifactName(path) {
+    var parts = String(path).split('/');
+    return parts[parts.length - 1];
+  }
+
+  $('doWrite').addEventListener('click', async function () {
+    var body = {
+      kwrds: $('kwrds').value || '*',
+      mode: $('mode').value,
+      lang: $('lang').value || 'auto',
+      hash: $('hash').checked,
+      deps: $('deps').checked,
+      lines: $('lines').checked,
+      combined: $('combined').checked,
+      dep_depth: num('depDepth')
+    };
+    var budget = num('budget');
+    if (budget !== undefined) body.budget = budget;
+    if ($('importMode').value) body.import_mode = $('importMode').value;
+    var src = lines($('src').value);
+    if (src.length) body.src = src;
+    var memory = $('memory').value.split('\n');
+    if (memory.length > 1 && memory[0].trim()) {
+      body.memory = [{ filename: memory[0].trim(), content: memory.slice(1).join('\n') }];
+    }
+    var data = await call('POST', '/v1/write', body);
+    if (data && data.ok && data.result.outputs && data.result.outputs.length) {
+      $('artifact').value = artifactName(data.result.outputs[0]);
+    }
+  });
+
+  $('doExtract').addEventListener('click', function () {
+    var body = { artifact: $('artifact').value, kwrds: $('exKwrds').value || '*', expand: $('expand').value };
+    var budget = num('exBudget');
+    if (budget !== undefined) body.budget = budget;
+    call('POST', '/v1/extract', body);
+  });
+  $('doInspect').addEventListener('click', function () { call('POST', '/v1/inspect', { artifact: $('artifact').value }); });
+  $('doRead').addEventListener('click', function () { call('POST', '/v1/read', { artifact: $('artifact').value }); });
+  $('doVerify').addEventListener('click', function () {
+    call('POST', '/v1/verify', { artifact: $('artifact').value, src: lines($('verifySrc').value) });
+  });
+  $('health').addEventListener('click', function () { call('GET', '/health'); });
+
+  fetch('/config.json').then(function (r) { return r.json(); }).then(function (config) {
+    apiBase = config.apiBase;
+    $('api').textContent = 'API: ' + apiBase + (config.requireSecret ? '  (secret required)' : '  (no secret required)');
+  }).catch(function () {
+    $('api').textContent = 'could not read /config.json';
+  });
+})();
+</script>
+</body>
+</html>

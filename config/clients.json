@@ -1,0 +1,14 @@
+{
+  "clients": [
+    {
+      "id": "mfdp_development_computer",
+      "name": "MFDP Development Computer",
+      "ip": "127.0.0.1",
+      "scopes": [
+        "READ",
+        "WRITE"
+      ],
+      "enabled": true
+    }
+  ]
+}

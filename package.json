@@ -1,0 +1,21 @@
+{
+  "name": "mfdp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Model File Definition Protocol workspace",
+  "license": "Apache-2.0",
+  "author": "Blue GC",
+  "workspaces": [
+    "api",
+    "bindings/node"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/index.js build",
+    "setup": "node scripts/index.js setup",
+    "test": "node scripts/index.js test",
+    "start": "node scripts/index.js api"
+  }
+}

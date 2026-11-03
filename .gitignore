@@ -1,0 +1,14 @@
+.env
+.venv/
+node_modules/
+build/
+build-direct/
+artifacts/
+api/dist/
+*.mfdp
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,9 @@
+{
+    "displayName": "Model File Definition Protocol",
+    "slug": "MFDP",
+    "name": "MFDP",
+    "author": "Blue GC",
+    "version": "1.0.0",
+    "description": "Model File Definition Protocol: compact binary code context for AI models",
+    "license": "Apache-2.0"
+}

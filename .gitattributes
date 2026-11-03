@@ -1,0 +1,8 @@
+*.sh text eol=lf
+*.js text eol=lf
+*.py text eol=lf
+*.ps1 text eol=crlf
+examples/** linguist-documentation
+tests/fixtures/** linguist-vendored
+api/public/** linguist-vendored
+assets/** linguist-vendored

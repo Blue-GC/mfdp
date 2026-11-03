@@ -1,0 +1,20 @@
+{
+  "name": "@bluegc/mfdp",
+  "version": "1.0.0",
+  "description": "Node.js binding for the Model File Definition Protocol (MFDP)",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Blue GC",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
