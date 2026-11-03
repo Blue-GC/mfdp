@@ -39,12 +39,12 @@ All tests must pass before you change anything. Tests for adapters whose toolcha
 
 ## Making a change
 
-1. Update your copy: `git fetch upstream && git switch -c my-change upstream/main`
+1. Create a branch from the latest `main`. Members: `git fetch origin && git switch -c my-change origin/main`. Fork users: `git fetch upstream && git switch -c my-change upstream/main`.
 2. Make one focused change. One pull request should do one thing.
 3. Add or update tests for it.
 4. Run `make build && make test` and make sure they pass.
 5. Commit with a clear message, for example `Fix Java adapter version check`.
-6. Push to your fork and open a pull request against `main`.
+6. Push your branch (members to `origin`, fork users to their fork) and open a pull request against `main`.
 
 ## What every pull request must meet
 
